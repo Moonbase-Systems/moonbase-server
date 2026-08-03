@@ -1,0 +1,58 @@
+services:
+  prestart:
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db/moonbase-server
+    command: pnpm prestart
+  app:
+    build:
+      context: .
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db/moonbase-server
+      API_PORT: 4000
+    restart: unless-stopped
+    ports:
+      - 4000:4000
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      prestart:
+        condition: service_completed_successfully
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=moonbase-server
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d moonbase-server']
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5050:80'
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
