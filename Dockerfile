@@ -21,7 +21,7 @@ WORKDIR /app
 COPY pnpm-lock.yaml package.json ./
 
 # Install dependencies for build
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -40,7 +40,7 @@ ENV NODE_ENV=production
 COPY pnpm-lock.yaml package.json kysely.config.ts nest-cli.json ./
 
 # Install only production dependencies
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install --frozen-lockfile --prod --ignore-scripts
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Copy built files from build stage
 COPY --from=build /app/dist ./dist
@@ -61,7 +61,7 @@ ENV HUSKY=0
 COPY pnpm-lock.yaml package.json ./
 
 # Install all dependencies (dev + prod)
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc pnpm install
+RUN pnpm install
 
 # Copy source code
 COPY . .
